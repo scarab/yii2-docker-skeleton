@@ -1,0 +1,6 @@
+composer
+db/mysql/*
+db/mysqltest/*
+logs/nginx/*
+logs/mysql/*
+logs/mysqltest/*

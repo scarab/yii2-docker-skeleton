@@ -1,0 +1,107 @@
+services:
+
+  nginx:
+    image: "nginx:latest"
+    container_name: ${COMPOSE_PROJECT_NAME}-nginx
+    restart: always
+    ports:
+      - "${WEB_PORT_HTTP}:80"
+      - "${WEB_PORT_SSL}:443"
+    depends_on:
+      - web
+    networks:
+      - app-network
+    links:
+      - web
+    volumes:
+      - ./docker/config/dev/web.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/runtime/logs/nginx:/var/log/nginx
+      - ./application:/var/www/html:ro,cached
+
+  mysql:
+    image: "mysql:5.7"
+    restart: always
+    container_name: ${COMPOSE_PROJECT_NAME}-mysql
+    # Показываем наружу 3306 порт
+    ports:
+      - "3306:3306"
+    # Подключаем к общей сети с другими контейнерами
+    networks:
+      - app-network
+    volumes:
+      - ./docker/config/dev/mysql-custom.cnf:/etc/mysql/conf.d/custom.cnf
+      - ./docker/runtime/db/mysql:/var/lib/mysql
+      - ./docker/runtime/logs/mysql:/var/log/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS}
+      MYSQL_DATABASE: ${DB_NAME}
+
+  # MySQL Test
+  mysqltest:
+    image: "mysql:5.7"
+    restart: always
+    container_name: ${COMPOSE_PROJECT_NAME}-mysqltest
+    # Показываем наружу 3306 порт
+    ports:
+      - "3316:3306"
+    # Подключаем к общей сети с другими контейнерами
+    networks:
+      - app-network
+    volumes:
+      - ./docker/config/dev/mysql-custom.cnf:/etc/mysql/conf.d/custom.cnf
+      - ./docker/runtime/db/mysqltest:/var/lib/mysql
+      - ./docker/runtime/logs/mysqltest:/var/log/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${TESTDB_PASS}
+      MYSQL_DATABASE: ${TESTDB_NAME}
+
+  # Контейнер с веб-приложением (Yii2 + PHP8.0)
+  web: &app-tpl
+    image: ${COMPOSE_PROJECT_NAME}-web:latest
+    container_name: ${COMPOSE_PROJECT_NAME}-web
+    restart: no
+    build:
+      context: .
+      target: base
+      args:
+        BUILD_ARGUMENT_ENV: dev
+        HOST_UID: 1000
+        HOST_GID: 1000
+        WEB_PORT_HTTP: ${WEB_PORT_HTTP}
+        WEB_PORT_SSL: ${WEB_PORT_SSL}
+        XDEBUG_CONFIG: ${XDEBUG_CONFIG}
+      dockerfile: ./docker/build/php/Dockerfile
+    volumes:
+      - ./application:/var/www/html
+      - ./docker/config/dev/php/local.ini:/usr/local/etc/php/conf.d/zz99-local.ini
+      - ./docker/runtime/composer:/var/www/.composer
+      - ./.env.dev:/var/www/html/.env:ro,cached
+    networks:
+      - app-network
+    links:
+      - mysql
+      - mysqltest
+    depends_on:
+      - mysql
+      - mysqltest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    working_dir: /var/www/html
+    env_file:
+      - .env
+    environment:
+      PHP_IDE_CONFIG: "serverName=Docker"
+
+  composer-first-install:
+    <<: *app-tpl
+    profiles: ["first-install"]
+    container_name: ${COMPOSE_PROJECT_NAME}-install
+    volumes:
+      - ./application:/var/www/html
+      - ./docker/config/dev/php/local.ini:/usr/local/etc/php/conf.d/zz99-local.ini
+      - ./docker/runtime/composer:/var/www/.composer
+      - ./composer.json:/tmp/composer.json:ro,cached
+    command: composer create-project --prefer-dist yiisoft/yii2-app-advanced /var/www/html && cp -f /tmp.composer.json /var/www/html
+networks:
+  app-network:
+    driver: bridge

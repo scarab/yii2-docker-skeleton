@@ -1,0 +1,51 @@
+{
+    "name": "yii2-docker-skeleton",
+    "type": "project",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Ilya 'Scarab' Basalaev",
+            "email": "scarab@scarab.name",
+            "role": "Developer"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.2",
+        "ext-http": "*",
+        "ext-json": "*",
+        "ext-bcmath": "*",
+        "yiisoft/yii2": "^2.0"
+    },
+    "require-dev": {
+        "yiisoft/yii2-debug": "~2.1.0",
+        "yiisoft/yii2-faker": "~2.0.0",
+        "codeception/codeception": "*",
+        "codeception/module-asserts": "*",
+        "codeception/module-yii2": "^1.1.10",
+        "codeception/module-filesystem": "*",
+        "codeception/verify": "*",
+        "symfony/browser-kit": "*",
+        "codeception/module-rest": "*",
+        "codeception/module-phpbrowser": "*",
+        "yiisoft/yii2-gii": "^2.1.4",
+        "elisdn/yii2-gii-fixture-generator": "^1.1"
+    },
+    "config": {
+        "process-timeout": 1800,
+        "fxp-asset": {
+            "enabled": false
+        },
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "php-http/discovery": true
+        }
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ]
+}
