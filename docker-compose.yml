@@ -75,7 +75,6 @@ services:
       - ./application:/var/www/html
       - ./docker/config/dev/php/local.ini:/usr/local/etc/php/conf.d/zz99-local.ini
       - ./docker/runtime/composer:/var/www/.composer
-      - ./.env.dev:/var/www/html/.env:ro,cached
     networks:
       - app-network
     links:
@@ -101,7 +100,7 @@ services:
       - ./docker/config/dev/php/local.ini:/usr/local/etc/php/conf.d/zz99-local.ini
       - ./docker/runtime/composer:/var/www/.composer
       - ./composer.json:/tmp/composer.json:ro,cached
-    command: composer create-project --prefer-dist yiisoft/yii2-app-advanced /var/www/html && cp -f /tmp.composer.json /var/www/html
+    command: composer create-project --prefer-dist yiisoft/yii2-app-${YII_INSTALL_VERSION} /var/www/html && cp -f /tmp.composer.json /var/www/html
 networks:
   app-network:
     driver: bridge

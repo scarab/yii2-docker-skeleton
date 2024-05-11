@@ -1,5 +1,5 @@
 export INNODB_USE_NATIVE_AIO=1
-
+export YII_INSTALL_VERSION ?= basic
 # Determine if .env file exist
 ifneq ("$(wildcard .env)","")
 	include .env
@@ -187,7 +187,11 @@ wait-for-db:
 first-install:
 	@if docker compose ps | grep -q $(COMPOSE_PROJECT_NAME)-web; then docker compose stop web; fi
 	@rm -f ./application/.gitkeep
-	@if [ -z "$$(ls -A ./application)" ]; then docker compose up composer-first-install; else echo "Error: application directory not empty"; fi
+	@if [ ! -z "$$(ls -A ./application)" ]; then echo "Error: application directory not empty"; exit 1; fi
+	@docker compose up composer-first-install
+	@docker compose down composer-first-install
+	@make start
+	@make composer-update
 
 composer-install-no-dev: ## Installs composer no-dev dependencies
 	@make exec-bash cmd="COMPOSER_MEMORY_LIMIT=-1 composer install --optimize-autoloader --no-dev"

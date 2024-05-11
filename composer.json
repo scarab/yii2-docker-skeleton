@@ -1,5 +1,5 @@
 {
-    "name": "yii2-docker-skeleton",
+    "name": "scarab/yii2-docker-skeleton",
     "type": "project",
     "license": "proprietary",
     "authors": [
