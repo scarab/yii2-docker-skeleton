@@ -14,7 +14,10 @@ services:
     links:
       - web
     volumes:
-      - ./docker/config/dev/web.conf:/etc/nginx/conf.d/default.conf
+      - ./docker/config/dev/web-basic.conf:/etc/nginx/conf.d/default.conf
+
+# for yii2-advanced
+#     - ./docker/config/dev/web-advanced.conf:/etc/nginx/conf.d/default.conf
       - ./docker/runtime/logs/nginx:/var/log/nginx
       - ./application:/var/www/html:ro,cached
 
