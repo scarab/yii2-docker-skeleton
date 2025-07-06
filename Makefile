@@ -233,19 +233,16 @@ else
 	$(ERROR_ONLY_FOR_HOST)
 endif
 
-#drop-migrate: ## Drops databases and runs all migrations for the main/test databases
-#	@make exec cmd="php artisan migrate:fresh"
-#	@make exec cmd="php artisan migrate:fresh --env=test"
+drop-migrate: ## Drops databases and runs all migrations for the main/test databases
+	@make exec cmd="php yii migrate/fresh"
+	@make exec cmd="php yii_test migrate/fresh"
 
-#migrate-no-test: ## Runs all migrations for main database
-#	@make exec cmd="php artisan migrate --force"
+migrate-no-test: ## Runs all migrations for main database
+	@make exec cmd="php yii migrate/up"
 
-#migrate: ## Runs all migrations for main/test databases
-#	@make exec cmd="php artisan migrate --force"
-#	@make exec cmd="php artisan migrate --force --env=test"
-
-#seed: ## Runs all seeds for test database
-#	@make exec cmd="php artisan db:seed --force"
+migrate: ## Runs all migrations for main/test databases
+	@make exec cmd="php yii migrate/up"
+	@make exec cmd="php yii_test migrate/up"
 
 composer-normalize: ## Normalizes composer.json file content
 	@make exec cmd="composer normalize"
