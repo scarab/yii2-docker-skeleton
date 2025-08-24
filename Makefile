@@ -181,9 +181,6 @@ else
 	$(ERROR_ONLY_FOR_HOST)
 endif
 
-wait-for-db:
-	@make exec cmd="php artisan db:wait"
-
 first-install:
 	@if docker compose ps | grep -q $(COMPOSE_PROJECT_NAME)-web; then docker compose stop web; fi
 	@rm -f ./application/.gitkeep

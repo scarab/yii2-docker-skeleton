@@ -1,4 +1,4 @@
-FROM php:8.3-fpm as base
+FROM php:8.4-fpm as base
 
 # set main params
 ARG BUILD_ARGUMENT_ENV=dev
@@ -31,6 +31,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
       sudo \
       zip \
       locales \
+      mc \
    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen \
    && chmod +x /usr/local/bin/install-php-extensions && install-php-extensions \
       gd \
@@ -41,10 +42,14 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y \
       opcache \
       zip \
       http \
+      xdebug \
     && rm -rf /tmp/* \
     && rm -rf /var/list/apt/* \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
+
+#Timezone and locales
+RUN cp /usr/share/zoneinfo/Europe/Moscow /etc/localtime
 
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:UTF-8
@@ -53,11 +58,13 @@ ENV LC_ALL=en_US.UTF-8
 # put php config
 COPY ./docker/config/$BUILD_ARGUMENT_ENV/www.conf /usr/local/etc/php-fpm.d/www.conf
 COPY ./docker/config/$BUILD_ARGUMENT_ENV/php.ini /usr/local/etc/php/php.ini
+COPY ./docker/config/dev/xdebug-${XDEBUG_CONFIG}.ini /usr/local/etc/php/conf.d/xdebug.ini
 
 # install Xdebug in case dev/test environment
-COPY --chmod=755 ./docker/build/php/do_we_need_xdebug.sh /tmp/
-COPY ./docker/config/dev/xdebug-${XDEBUG_CONFIG}.ini /tmp/xdebug.ini
-RUN /tmp/do_we_need_xdebug.sh
+RUN rm -rf /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && if [ "$BUILD_ARGUMENT_ENV" != "dev" ]; then \
+    rm /usr/local/etc/php/conf.d/xdebug.ini; \
+  fi
 
 # install composer
 COPY --from=composer:latest --chmod=755 /usr/bin/composer /usr/bin/composer
@@ -72,7 +79,7 @@ COPY --chown=${USERNAME}:${USERNAME} .env.$ENV $APP_HOME/.env
 # set working directory
 WORKDIR $APP_HOME
 
-RUN for DIR in 'api backend console frontend'; do \
+RUN for DIR in '. api backend console frontend'; do \
       if [ -d $APP_HOME/$DIR/runtime ]; then chown -R ${USERNAME}:${USERNAME} $APP_HOME/$DIR/runtime; fi \
     done
 
